@@ -26,9 +26,8 @@ export async function POST(request: NextRequest) {
     const csvUrl = `${process.env.SITE_URL || "https://esophilo.com"}/sources.csv`;
     results.push(`Fetching CSV from: ${csvUrl}`);
     
-    // Fetch CSV from public folder (filesystem not available in standalone mode)
-    const siteUrl = process.env.SITE_URL || "https://esophilo.com";
-    const csvRes = await fetch(`${siteUrl}/sources.csv`);
+    // Fetch CSV from public folder via localhost (external URL unreachable from inside container)
+    const csvRes = await fetch("http://localhost:3000/sources.csv");
     if (!csvRes.ok) {
       return NextResponse.json({ error: `Failed to fetch CSV: ${csvRes.status}`, results }, { status: 500 });
     }
