@@ -2,7 +2,7 @@ import { Pool } from "pg";
 
 const pool = new Pool({
   connectionString:
-    "postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/esophilo",
+    process.env.DATABASE_URL!,
 });
 
 // ---------------------------------------------------------------------------

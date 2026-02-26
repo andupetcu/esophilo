@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const pool = new Pool({
-  connectionString: "postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/esophilo",
+  connectionString: process.env.DATABASE_URL!,
 });
 
 function slugify(text: string): string {
