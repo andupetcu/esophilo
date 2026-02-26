@@ -8,8 +8,8 @@ Target: Non-technical spiritual seekers, philosophy enthusiasts, students, medit
 ## Tech Stack
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, shadcn/ui, dark mode default
 - **Backend:** Next.js API routes (keep it simple, one deployable)
-- **Database:** PostgreSQL on 10.0.0.20 (`postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/esophilo`)
-- **AI:** Azure OpenAI GPT-5.2 (`https://footprints-ai-ml.openai.azure.com/openai/responses?api-version=2025-04-01-preview`, key: `4cfb42e62f134bb8ba5d637a8535ee93`)
+- **Database:** PostgreSQL on 10.0.0.20 (`postgres://user:password@host:5432/esophilo`)
+- **AI:** Azure OpenAI GPT-5.2 (`https://footprints-ai-ml.openai.azure.com/openai/responses?api-version=2025-04-01-preview`, key: `YOUR_AZURE_OPENAI_KEY`)
 - **Auth:** Simple email magic link (no heavy auth provider needed)
 - **Payments:** Stripe (reuse existing account)
 - **Deploy:** Coolify on existing server
@@ -362,12 +362,12 @@ CMD ["node", "server.js"]
 
 ### Environment Variables
 ```
-DATABASE_URL=postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/esophilo
+DATABASE_URL=postgres://user:password@host:5432/esophilo
 AZURE_OPENAI_ENDPOINT=https://footprints-ai-ml.openai.azure.com/openai/responses?api-version=2025-04-01-preview
-AZURE_OPENAI_KEY=4cfb42e62f134bb8ba5d637a8535ee93
-STRIPE_SECRET_KEY=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
-STRIPE_PUBLISHABLE_KEY=pk_live_44ePXomhM1PWlr9uHPPlWTxe00vRoKOjWK
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_44ePXomhM1PWlr9uHPPlWTxe00vRoKOjWK
+AZURE_OPENAI_KEY=YOUR_AZURE_OPENAI_KEY
+STRIPE_SECRET_KEY=sk_live_YOUR_STRIPE_SECRET_KEY
+STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_STRIPE_PUBLISHABLE_KEY
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_STRIPE_PUBLISHABLE_KEY
 JWT_SECRET=esophilo-jwt-secret-change-me-in-prod
 SITE_URL=https://esophilo.com
 ```

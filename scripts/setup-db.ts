@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 
-const baseUrl = process.env.DATABASE_URL || "postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/postgres";
+const baseUrl = process.env.DATABASE_URL || "";
 
 async function setup() {
   // Connect to default 'postgres' database to create esophilo database
@@ -26,7 +26,7 @@ async function setup() {
     ? baseUrl.includes("/esophilo") ? baseUrl : baseUrl.replace(/\/[^/]*$/, "/esophilo")
     : baseUrl;
   const pool = new Pool({
-    connectionString: "postgres://postgres:8hfb0G6VzobRRJQ26vH47blxIrTI430p3bqv19NrcQAUezTRUONkLmZLHyyOqKEI@10.0.0.20:5432/esophilo",
+    connectionString: process.env.DATABASE_URL!,
   });
 
   try {
