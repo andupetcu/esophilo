@@ -22,35 +22,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Already seeded", results });
     }
 
-    // Parse the CSV data (embedded as we can't read files in standalone mode)
+    // Parse the CSV data
     const csvUrl = `${process.env.SITE_URL || "https://esophilo.com"}/sources.csv`;
     results.push(`Fetching CSV from: ${csvUrl}`);
     
-    // Actually, let's read from the filesystem
-    const fs = await import("fs");
-    const path = await import("path");
-    
-    // Try multiple paths
-    const possiblePaths = [
-      path.join(process.cwd(), "sources.csv"),
-      "/app/sources.csv",
-      path.join(__dirname, "..", "..", "sources.csv"),
-    ];
-    
-    let csvContent = "";
-    for (const p of possiblePaths) {
-      try {
-        csvContent = fs.readFileSync(p, "utf-8");
-        results.push(`Found CSV at: ${p} (${csvContent.length} bytes)`);
-        break;
-      } catch {
-        results.push(`Not found at: ${p}`);
-      }
+    // Fetch CSV from public folder (filesystem not available in standalone mode)
+    const siteUrl = process.env.SITE_URL || "https://esophilo.com";
+    const csvRes = await fetch(`${siteUrl}/sources.csv`);
+    if (!csvRes.ok) {
+      return NextResponse.json({ error: `Failed to fetch CSV: ${csvRes.status}`, results }, { status: 500 });
     }
-
-    if (!csvContent) {
-      return NextResponse.json({ error: "CSV file not found", results }, { status: 500 });
-    }
+    const csvContent = await csvRes.text();
+    results.push(`Fetched CSV: ${csvContent.length} bytes`);
 
     // Parse CSV
     const lines = csvContent.split("\n");
