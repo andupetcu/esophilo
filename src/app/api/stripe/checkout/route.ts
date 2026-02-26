@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY || "");
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +12,7 @@ export async function POST(request: NextRequest) {
     const priceAmount = plan === "yearly" ? 4900 : 700;
     const interval = plan === "yearly" ? "year" : "month";
 
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
