@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const messages = [
-      { role: "system", content: SYSTEM_PROMPT + contextPassages },
+    // Build conversation input for Responses API
+    const conversationInput = [
       ...history
         .slice(-10)
         .map((m: { role: string; content: string }) => ({
@@ -102,7 +102,9 @@ export async function POST(request: NextRequest) {
         "api-key": key,
       },
       body: JSON.stringify({
-        input: messages,
+        model: "gpt-5.2",
+        instructions: SYSTEM_PROMPT + contextPassages,
+        input: conversationInput,
       }),
     });
 
