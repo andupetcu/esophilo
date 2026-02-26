@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { safeQuery } from "@/lib/db";
+import { verifyToken } from "@/lib/auth";
 
 // In-memory rate limiting (resets on server restart)
 const rateLimits = new Map<string, { count: number; date: string }>();
@@ -19,26 +20,31 @@ When answering questions:
 You speak with warmth and depth, like a wise librarian who has read everything and remembers it all.`;
 
 export async function POST(request: NextRequest) {
+  const authToken = request.cookies.get("auth-token")?.value;
+  const user = authToken ? await verifyToken(authToken) : null;
+  const isProUser = Boolean(user?.is_pro);
+
   const ip =
     request.headers.get("x-forwarded-for") ||
     request.headers.get("x-real-ip") ||
     "unknown";
   const today = new Date().toISOString().slice(0, 10);
 
-  // Rate limiting: 3/day for unauthenticated
-  const limit = rateLimits.get(ip);
-  if (limit && limit.date === today && limit.count >= 3) {
-    return NextResponse.json(
-      { error: "Rate limit exceeded. Upgrade to Pro for unlimited access." },
-      { status: 429 }
-    );
-  }
+  // Rate limiting: 3/day for free/unauthenticated users
+  if (!isProUser) {
+    const limit = rateLimits.get(ip);
+    if (limit && limit.date === today && limit.count >= 3) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Upgrade to Pro for unlimited access." },
+        { status: 429 }
+      );
+    }
 
-  // Update rate limit
-  if (!limit || limit.date !== today) {
-    rateLimits.set(ip, { count: 1, date: today });
-  } else {
-    limit.count++;
+    if (!limit || limit.date !== today) {
+      rateLimits.set(ip, { count: 1, date: today });
+    } else {
+      limit.count++;
+    }
   }
 
   const body = await request.json();

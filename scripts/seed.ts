@@ -184,12 +184,13 @@ async function seed() {
   const rows = parseCsv(csvContent);
 
   console.log(`Parsed ${rows.length} texts from CSV`);
-
-  // Clear existing data
-  await pool.query("DELETE FROM chapters");
-  await pool.query("DELETE FROM texts");
-  await pool.query("DELETE FROM authors");
-  await pool.query("DELETE FROM traditions");
+  const existingTextsResult = await pool.query("SELECT COUNT(*)::int AS count FROM texts");
+  const existingTextsCount = existingTextsResult.rows[0]?.count ?? 0;
+  if (existingTextsCount > 0) {
+    console.log(`Seed skipped: texts table already has ${existingTextsCount} rows.`);
+    await pool.end();
+    return;
+  }
 
   // Insert display categories as traditions
   let sortOrder = 0;
@@ -200,11 +201,16 @@ async function seed() {
     const result = await pool.query(
       `INSERT INTO traditions (name, slug, description, icon, sort_order)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (slug) DO UPDATE SET name = $1, description = $3, icon = $4, sort_order = $5
+       ON CONFLICT (slug) DO NOTHING
        RETURNING id`,
       [cat.name, slug, cat.description, cat.icon, sortOrder]
     );
-    const traditionId = result.rows[0].id;
+    const traditionId =
+      result.rows[0]?.id ??
+      (await pool.query("SELECT id FROM traditions WHERE slug = $1", [slug])).rows[0]?.id;
+    if (!traditionId) {
+      continue;
+    }
     // Map all sub-traditions to this display category
     for (const t of cat.traditions) {
       traditionIdMap[t] = traditionId;
@@ -232,10 +238,21 @@ async function seed() {
         authorIdMap[authorSlug] = existing.rows[0].id;
       } else {
         const result = await pool.query(
-          `INSERT INTO authors (name, slug, tradition_id) VALUES ($1, $2, $3) RETURNING id`,
+          `INSERT INTO authors (name, slug, tradition_id)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (slug) DO NOTHING
+           RETURNING id`,
           [row.author, authorSlug, traditionId]
         );
-        authorIdMap[authorSlug] = result.rows[0].id;
+        const insertedAuthorId = result.rows[0]?.id;
+        if (insertedAuthorId) {
+          authorIdMap[authorSlug] = insertedAuthorId;
+        } else {
+          const existingAuthor = await pool.query("SELECT id FROM authors WHERE slug = $1", [authorSlug]);
+          if (existingAuthor.rows.length > 0) {
+            authorIdMap[authorSlug] = existingAuthor.rows[0].id;
+          }
+        }
       }
     }
 

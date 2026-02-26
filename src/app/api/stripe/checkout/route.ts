@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { verifyToken } from "@/lib/auth";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY || "");
@@ -7,15 +8,25 @@ function getStripe() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { plan } = await request.json();
+    const { plan, email } = await request.json();
+    if (plan !== "monthly" && plan !== "yearly") {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
 
     const priceAmount = plan === "yearly" ? 4900 : 700;
     const interval = plan === "yearly" ? "year" : "month";
+    const authToken = request.cookies.get("auth-token")?.value;
+    const user = authToken ? await verifyToken(authToken) : null;
+    const customerEmail = typeof email === "string" && email.includes("@")
+      ? email.trim().toLowerCase()
+      : user?.email;
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
+      ...(customerEmail ? { customer_email: customerEmail } : {}),
+      ...(user?.id ? { client_reference_id: String(user.id) } : {}),
       line_items: [
         {
           price_data: {

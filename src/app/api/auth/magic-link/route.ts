@@ -23,12 +23,11 @@ export async function POST(request: NextRequest) {
     [email, token, expiresAt]
   );
 
-  // In production, send email here
+  // TODO: Send magic links via an email provider (e.g., Resend) for production delivery.
   const verifyUrl = `${process.env.SITE_URL || "http://localhost:3000"}/api/auth/verify?token=${token}`;
 
   return NextResponse.json({
-    message: "Magic link sent! Check your email.",
-    // Include verify URL in dev for testing
-    ...(process.env.NODE_ENV !== "production" && { verifyUrl }),
+    message: "Magic link generated. Open the verification link to sign in.",
+    verifyUrl,
   });
 }
