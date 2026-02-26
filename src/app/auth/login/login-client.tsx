@@ -88,7 +88,7 @@ export function LoginPage() {
               {verifyUrl && (
                 <div className="mt-4 rounded-md bg-muted p-3 text-xs">
                   <p className="font-medium mb-1 text-muted-foreground">
-                    Dev mode - verify link:
+                    Verification link:
                   </p>
                   <a
                     href={verifyUrl}

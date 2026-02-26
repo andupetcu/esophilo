@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Pool } from "pg";
 
-const SEED_KEY = process.env.SEED_SECRET || "esophilo-seed-2026";
+const SEED_KEY = process.env.SEED_SECRET;
 
 export async function POST(request: NextRequest) {
+  if (!SEED_KEY) {
+    return NextResponse.json({ error: "Seed service unavailable" }, { status: 503 });
+  }
+
   const body = await request.json().catch(() => ({ key: "" }));
   
   if (body.key !== SEED_KEY) {
