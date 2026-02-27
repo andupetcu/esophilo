@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | EsoPhilo",
   },
   description:
-    "A digital library of 120+ public domain philosophy and esoteric texts with AI-powered understanding. Explore Hermetic, Gnostic, Buddhist, Stoic, and more.",
+    "A digital library of 1,178 public domain philosophy and esoteric texts with AI-powered understanding. Explore Hermetic, Gnostic, Buddhist, Stoic, and more.",
   keywords: [
     "philosophy",
     "esoteric",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "EsoPhilo — Ancient Wisdom, Modern Understanding",
     description:
-      "A digital library of 120+ public domain philosophy and esoteric texts with AI-powered understanding.",
+      "A digital library of 1,178 public domain philosophy and esoteric texts with AI-powered understanding.",
     siteName: "EsoPhilo",
     type: "website",
   },
@@ -66,7 +66,7 @@ export default function RootLayout({
               name: "EsoPhilo",
               url: "https://esophilo.com",
               description:
-                "A digital library of 120+ public domain philosophy and esoteric texts with AI-powered understanding.",
+                "A digital library of 1,178 public domain philosophy and esoteric texts with AI-powered understanding.",
               potentialAction: {
                 "@type": "SearchAction",
                 target: "https://esophilo.com/search?q={search_term_string}",

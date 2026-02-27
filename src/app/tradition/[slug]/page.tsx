@@ -19,7 +19,18 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const tradition = getTraditionBySlug(slug);
-  return { title: tradition?.name || "Tradition" };
+  if (!tradition) return { title: "Tradition" };
+
+  const description = tradition.description.slice(0, 160);
+
+  return {
+    title: tradition.name,
+    description,
+    openGraph: {
+      title: `${tradition.name} | EsoPhilo`,
+      description,
+    },
+  };
 }
 
 export default async function TraditionPage({ params }: Props) {
