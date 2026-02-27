@@ -12,7 +12,22 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const text = await getTextBySlug(slug);
-  return { title: text?.title || "Text" };
+  if (!text) return { title: "Text" };
+
+  const description = (text.description || text.notes || "")
+    ? `${text.description || text.notes}`.slice(0, 160)
+    : `Read "${text.title}" by ${text.author_name} — ${text.tradition_name} tradition on EsoPhilo.`;
+
+  return {
+    title: text.title,
+    description,
+    openGraph: {
+      title: `${text.title} | EsoPhilo`,
+      description,
+      type: "article",
+      authors: text.author_name ? [text.author_name] : undefined,
+    },
+  };
 }
 
 export default async function TextDetailPage({ params }: Props) {

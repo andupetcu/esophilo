@@ -154,14 +154,15 @@ export async function getChapter(
 }
 
 /**
- * Full-text search across chapter content and titles.
- * Returns matching texts with basic metadata. Falls back to an empty array.
+ * Full-text search across text titles, authors, descriptions, and chapter content.
+ * Uses ILIKE for metadata and EXISTS subquery for chapter content to avoid
+ * expensive cross-joins. Falls back to an empty array.
  */
 export async function searchTexts(
   query: string,
 ): Promise<TextRecord[]> {
   const result = await safeQuery(
-    `SELECT DISTINCT
+    `SELECT
        t.id,
        t.title,
        t.slug,
@@ -183,18 +184,76 @@ export async function searchTexts(
      FROM texts t
      JOIN authors a     ON a.id  = t.author_id
      JOIN traditions tr ON tr.id = t.tradition_id
-     JOIN chapters c    ON c.text_id = t.id
      WHERE
-       to_tsvector('english', c.content) @@ plainto_tsquery('english', $1)
-       OR t.title ILIKE '%' || $1 || '%'
+       t.title ILIKE '%' || $1 || '%'
        OR a.name  ILIKE '%' || $1 || '%'
-     ORDER BY t.title
+       OR t.description ILIKE '%' || $1 || '%'
+       OR t.notes ILIKE '%' || $1 || '%'
+       OR EXISTS (
+         SELECT 1 FROM chapters c
+         WHERE c.text_id = t.id
+         AND c.content ILIKE '%' || $1 || '%'
+       )
+     ORDER BY
+       CASE WHEN t.title ILIKE '%' || $1 || '%' THEN 0
+            WHEN a.name ILIKE '%' || $1 || '%' THEN 1
+            ELSE 2
+       END,
+       t.title
      LIMIT 50`,
     [query],
   );
 
   if (!result) return [];
   return result.rows as TextRecord[];
+}
+
+/**
+ * Returns all texts in the library with basic metadata.
+ * Used by the /library page for the browsable catalog.
+ */
+export async function getAllTexts(): Promise<TextRecord[]> {
+  const result = await safeQuery(
+    `SELECT
+       t.id,
+       t.title,
+       t.slug,
+       a.name        AS author_name,
+       a.slug        AS author_slug,
+       tr.name       AS tradition_name,
+       tr.slug       AS tradition_slug,
+       tr.icon       AS tradition_icon,
+       t.language,
+       t.type,
+       t.source,
+       t.source_url,
+       t.date_written,
+       t.translator,
+       t.notes,
+       t.description,
+       t.difficulty,
+       t.reading_time_min,
+       (SELECT COUNT(*) FROM chapters c WHERE c.text_id = t.id) AS chapter_count
+     FROM texts t
+     JOIN authors a     ON a.id  = t.author_id
+     JOIN traditions tr ON tr.id = t.tradition_id
+     ORDER BY t.title`,
+  );
+
+  if (!result) return [];
+  return result.rows as TextRecord[];
+}
+
+/**
+ * Returns all text slugs. Used for sitemap generation.
+ */
+export async function getAllTextSlugs(): Promise<string[]> {
+  const result = await safeQuery(
+    `SELECT slug FROM texts ORDER BY slug`,
+  );
+
+  if (!result) return [];
+  return result.rows.map((r: { slug: string }) => r.slug);
 }
 
 /** Hardcoded slugs for well-known featured texts used as a fallback. */
@@ -270,6 +329,41 @@ export async function getFeaturedTexts(): Promise<TextRecord[]> {
   }
 
   return result.rows as TextRecord[];
+}
+
+export interface DailyWisdom {
+  passage: string;
+  author?: string;
+  source?: string;
+  modern_interpretation?: string;
+  tradition_name?: string;
+  tradition_icon?: string;
+}
+
+/**
+ * Fetches the daily wisdom quote. Tries the DB first, falls back to a
+ * hardcoded quote.
+ */
+export async function getDailyWisdom(): Promise<DailyWisdom> {
+  const result = await safeQuery(
+    `SELECT dw.passage, dw.modern_interpretation, t.name as tradition_name, t.icon as tradition_icon
+     FROM daily_wisdom dw
+     LEFT JOIN traditions t ON t.id = dw.tradition_id
+     WHERE dw.date = CURRENT_DATE
+     LIMIT 1`,
+  );
+
+  if (result && result.rows.length > 0) {
+    return result.rows[0] as DailyWisdom;
+  }
+
+  return {
+    passage: "The unexamined life is not worth living.",
+    author: "Socrates",
+    source: "Apology by Plato",
+    tradition_name: "Greek Philosophy",
+    tradition_icon: "🏛️",
+  };
 }
 
 /** Converts a slug like "tao-te-ching" to "Tao Te Ching". */

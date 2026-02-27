@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, Search, BookOpen, Sparkles, LogIn } from "lucide-react";
+import { Menu, Search, BookOpen, Sparkles, LogIn, Library, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,8 +14,10 @@ import {
 
 const navLinks = [
   { href: "/traditions", label: "Traditions", icon: BookOpen },
+  { href: "/library", label: "Library", icon: Library },
   { href: "/search", label: "Search", icon: Search },
   { href: "/ask", label: "Ask the Sages", icon: Sparkles },
+  { href: "/pricing", label: "Pricing", icon: CreditCard },
 ];
 
 export function Navigation() {
