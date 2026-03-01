@@ -57,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <script defer src="https://analytics.noru1.ro/script.js" data-website-id="b39c9bca-1ea3-4902-a314-c181e4a7b833" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
