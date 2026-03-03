@@ -1,6 +1,4 @@
 import type { NextConfig } from "next";
-import { existsSync } from "fs";
-import { join } from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
